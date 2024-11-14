@@ -7,3 +7,38 @@
     flex-direction: row;
     flex: 0 0;
 }
+
+
+.sprite {
+    z-index: 0;
+    position: relative;
+}
+
+.sprite > * {
+    position: absolute;
+}
+
+.sprite > :nth-child(1) {
+    transform: translate(0px, 0px);
+    z-index: 1;
+}
+.sprite > :nth-child(2) {
+    transform: translate(-8px, -8px);
+    z-index: 2;
+}
+.sprite > :nth-child(3) {
+    transform: translate(-16px, -16px);
+    z-index: 3;
+}
+.sprite > :nth-child(4) {
+    transform: translate(-24px, -24px);
+    z-index: 4;
+}
+.sprite > :nth-child(5) {
+    transform: translate(-32px, -32px);
+    z-index: 5;
+}
+.sprite > :nth-child(6) {
+    transform: translate(-40px, -40px);
+    z-index: 6;
+}

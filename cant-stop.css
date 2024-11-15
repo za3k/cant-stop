@@ -149,6 +149,10 @@ html, body {
     border-radius: 10px;
     margin: 5px;
     border: 1px solid;
+    user-select: none;
+}
+.action:hover {
+    background-color: #eeeeee;
 }
 
 #turn-info {
@@ -179,4 +183,8 @@ html, body {
     min-height: 50%;
     min-width: 50%;
     padding: 2rem;
+}
+
+#instructions {
+    white-space: pre-wrap;
 }

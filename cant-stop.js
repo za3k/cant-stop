@@ -8,13 +8,13 @@
 //        [x] Red, green, blue, pink token
 //            #648fff ##785EF0 #DC267F ##FE6100 #FFB000
 //[x] Hook up UI board display to game state
-//[ ] Make dice roll area (6 dice grouped correctly, plus up to 6 action buttons)
-//[ ] Add post-move actions (roll again, stay)
+//[x] Make dice roll area (6 dice grouped correctly, plus up to 6 action buttons)
+//[x] Add post-move actions (roll again, stay)
 //[ ] Add game logic, make all actions work
-//    [ ] Advancing
-//    [ ] Dice filtering
-//    [ ] Stopping + saving progress
-//    [ ] Completing a column
+//    [x] Advancing
+//    [x] Dice filtering
+//    [x] Stopping + saving progress
+//    [x] Completing a column
 //[ ] Single-player mode
 //[ ] Local multi-player mode
 //[ ] Add credits
@@ -36,7 +36,7 @@ function roll() { return 1 + Math.floor(Math.random()*6) }
 const maxProgress = { 2:3, 3:5, 4:7, 5:9, 6:11, 7:13, 8:11, 9:9, 10:7, 11:5, 12:3 }
 
 var sprites
-const playerSprites = "ABCDE"
+const playerSprites = "ACDEB"
 const diceSprites = ["","die1", "die2", "die3", "die4", "die5", "die6"]
 class Game {
     constructor(players) {
@@ -68,34 +68,65 @@ class Game {
     }
 
     commitMarkers() {
-        // TODO
+        const p = this.playerTurn
+        for (var c=2; c<=12; c++) {
+            if (!this.markerProgress[c]) continue;
+            if (this.markerProgress[c] == maxProgress[c]) {
+                this.columnComplete[c] = true
+                this.playerColumnsComplete[p]++ 
+                for (var i=0; i<this.players; i++) {
+                    this.playerProgress[i][c] = 0
+                }
+            }
+            this.playerProgress[p][c] = this.markerProgress[c]
+        }
+    }
+
+    playSound(name) {
+        const audio = new Audio(`audio/${name}.mp3`)
+        audio.play()
+    }
+
+    win() {
+        this.playSound("win")
+        const sprite = sprites[playerSprites[this.playerTurn]]
+        $("#win").show().text(`Player ${this.playerTurn+1} wins`).prepend(sprite.make()).append(sprite.make())
     }
 
     endTurn(busted) {
+        if (busted) this.playSound("bust")
+        else        this.playSound("ding")
         if (!busted) this.commitMarkers()
         this.markersAvailable = 3
         this.markerProgress = {}
         this.markersOn = {}
         this.markerComplete = {}
 
-        this.playerTurn = (this.playerTurn + 1) % this.players
-        this.rolled = false
-
-        this.updateUI()
+        if (this.playerColumnsComplete[this.playerTurn] >= 3) {
+            this.updateUI()
+            this.win()
+            $(".action").hide()
+            return
+        } else {
+            this.playerTurn = (this.playerTurn + 1) % this.players
+            this.rolled = false
+            this.updateUI()
+        }
     }
 
     advanceMarker(c) {
+        if (this.markerComplete[c]) return
         if (!this.markersOn[c]) {
-            this.markerProgress[c] = 0
+            this.markerProgress[c] = this.playerProgress[this.playerTurn][c] || 0
             this.markersAvailable--
             this.markersOn[c] = true
         }
         this.markerProgress[c]++
-        this.markerComplete[c] = (this.markerProgress[c] == maxProgress[c])
+        this.markerComplete[c] = (this.markerProgress[c] >= maxProgress[c])
     }
 
     visualRollDice() {
-        const rollTime = 1500;
+        const rollTime = 900;
         $("#action-area .action").hide()
         for (var i=0; i<rollTime; i += 50)
             setTimeout(() => {
@@ -104,6 +135,7 @@ class Game {
                 })
             }, i)
         setTimeout(() => { this.rollDice() }, rollTime)
+        this.playSound("roll")
     }
 
     canAdvance(player, columns) {
@@ -113,6 +145,7 @@ class Game {
             if (this.markerComplete[c] || this.columnComplete[c]) return false
             if (!this.markersOn[c]) markersNeeded++;
         }
+        if (columns.length == 2 && columns[0] == columns[1]) markersNeeded--
         return markersNeeded <= this.markersAvailable
     }
 
@@ -177,8 +210,12 @@ class Game {
             const r = columnStart[c]
             // Place tokens for player progress
             for (var p=0; p<this.players; p++)
-                for (var i=0; i<(this.playerProgress[p][c]||0); i++)
-                    this.placeToken(r - this.playerProgress[p][c] + i + 1, c-2, playerSprites[p])
+                if (this.columnComplete[c]) {
+                    for (var i=0; i<(this.playerProgress[p][c]||0); i++)
+                        this.placeToken(r - this.playerProgress[p][c] + i + 1, c-2, playerSprites[p])
+                } else if (this.playerProgress[p][c]) {
+                    this.placeToken(r - this.playerProgress[p][c] + 1, c-2, playerSprites[p])
+                }
             // Place marker bean
             if (this.markerProgress[c]) this.placeToken(r - this.markerProgress[c] + 1, c-2, "x")
         }
@@ -233,12 +270,15 @@ async function init() {
         })
     })
 
-    $(".action").hide()
+    $("#action-area .action").hide()
+    for (var i=1; i<=5; i++) {
+        const action = $(`#game-options > :nth-child(${i})`)
+        const num = i;
+        action.on("click", () => {
+            window.game = new Game(num)
+            $("#game-options").hide()
+        })
+    }
 }
 
-async function main() {
-    await init()
-    game = new Game(2)
-}
-
-main()
+init()

@@ -1,25 +1,3 @@
-//[x] 11x13 board grid
-//    [x] Make tiles
-//        [x] 2-12
-//        [x] Dice (1-4)
-//        [x] Black marker
-//        [x] Missing black marker
-//        [X] Drop shadow (?)
-//        [x] Red, green, blue, pink token
-//            #648fff ##785EF0 #DC267F ##FE6100 #FFB000
-//[x] Hook up UI board display to game state
-//[x] Make dice roll area (6 dice grouped correctly, plus up to 6 action buttons)
-//[x] Add post-move actions (roll again, stay)
-//[ ] Add game logic, make all actions work
-//    [x] Advancing
-//    [x] Dice filtering
-//    [x] Stopping + saving progress
-//    [x] Completing a column
-//[ ] Single-player mode
-//[ ] Local multi-player mode
-//[ ] Add credits
-//[ ] Explain game rules somewhere (link!)
-//
 //[ ] Stretch
 //    [ ] Audio
 //        [ ] Background music

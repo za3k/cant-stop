@@ -33,12 +33,14 @@
 //    [ ] You vs. AI mode
 
 function roll() { return 1 + Math.floor(Math.random()*6) }
+const maxProgress = { 2:3, 3:5, 4:7, 5:9, 6:11, 7:13, 8:11, 9:9, 10:7, 11:5, 12:3 }
 
 var sprites
 const playerSprites = "ABCDE"
+const diceSprites = ["","die1", "die2", "die3", "die4", "die5", "die6"]
 class Game {
-    constructor() {
-        this.players = 4
+    constructor(players) {
+        this.players = players
         this.playerProgress = {}
         this.playerColumnsComplete = {}
         for (var i=0; i<this.players; i++) {
@@ -55,9 +57,9 @@ class Game {
         this.playerTurn = 0
         this.rolled = false
 
-        //updateUI()
-        $(".action.roll").on("click", () => { this.rollDice() })
+        $(".action.roll").on("click", () => { this.visualRollDice() })
         $(".action.stop").on("click", () => { this.endTurn(false) })
+        this.updateUI()
     }
 
     placeToken(row, col, name) {
@@ -65,24 +67,43 @@ class Game {
         tile.append(sprites[name].make())
     }
 
-    lock(player, number, pos) {
-        this.playerProgress[player][number] = pos
+    commitMarkers() {
+        // TODO
     }
 
-    endTurn(busted) {} // TODO
+    endTurn(busted) {
+        if (!busted) this.commitMarkers()
+        this.markersAvailable = 3
+        this.markerProgress = {}
+        this.markersOn = {}
+        this.markerComplete = {}
 
-    rollDice() {
-        const rollTime = 3000;
+        this.playerTurn = (this.playerTurn + 1) % this.players
+        this.rolled = false
 
+        this.updateUI()
+    }
+
+    advanceMarker(c) {
+        if (!this.markersOn[c]) {
+            this.markerProgress[c] = 0
+            this.markersAvailable--
+            this.markersOn[c] = true
+        }
+        this.markerProgress[c]++
+        this.markerComplete[c] = (this.markerProgress[c] == maxProgress[c])
+    }
+
+    visualRollDice() {
+        const rollTime = 1500;
         $("#action-area .action").hide()
-        setTimeout(() => {
-            this.rolled = true
-            this.updateUI()
-        }, rollTime)
-        for (var i=0; i<rollTime; i += 300)
+        for (var i=0; i<rollTime; i += 50)
             setTimeout(() => {
-                this.setDice([roll(), roll(), roll(), roll()])
+                $(".die").each((i, d) => {
+                    $(d).empty().append(sprites[diceSprites[roll()]].make())
+                })
             }, i)
+        setTimeout(() => { this.rollDice() }, rollTime)
     }
 
     canAdvance(player, columns) {
@@ -95,8 +116,8 @@ class Game {
         return markersNeeded <= this.markersAvailable
     }
 
-    setDice(dice) {
-        const diceSprites = ["","die1", "die2", "die3", "die4", "die5", "die6"]
+    rollDice() {
+        var stuck = true
         const setDiceOption = (je, dice) => {
             console.log(je, dice)
             for (var i=0; i<4; i++) {
@@ -107,15 +128,23 @@ class Game {
             const actionSection = je.find('div:nth-child(5)').empty()
 
             var actions = []
-            var stuck = true
-            function addAdvance(s) {
+            const addAdvance = (s) => {
                 const action = $(`<div class="action">`)
+                if (s.length == 2 && s[0] > s[1]) {
+                    // TODO: swap the dice visually too
+                    s = [s[1], s[0]]
+                }
                 if (s.length == 1)
                     action.text(`Advance on ${s[0]}`)
                 else
                     action.text(`Advance on ${s[0]} & ${s[1]}`)
                 actionSection.append(action)
                 action.hide() // Initially hidden
+                action.on("click", () => {
+                    this.rolled = false
+                    for (var c of s) this.advanceMarker(c)
+                    this.updateUI()
+                })
                 stuck = false
             }
 
@@ -125,11 +154,15 @@ class Game {
                 if (this.canAdvance(this.playerTurn, [sums[0]])) addAdvance([sums[0]])
                 if (this.canAdvance(this.playerTurn, [sums[1]])) addAdvance([sums[1]])
             }
-            if (stuck) setTimeout(() => {this.endTurn(true)}, 2000)
         }
+
+        const dice = [roll(), roll(), roll(), roll()]
         setDiceOption($(".dice-option:nth-child(1)"), [dice[0], dice[1], dice[2], dice[3]])
         setDiceOption($(".dice-option:nth-child(2)"), [dice[0], dice[2], dice[1], dice[3]])
         setDiceOption($(".dice-option:nth-child(3)"), [dice[0], dice[3], dice[1], dice[2]])
+        this.rolled = true
+        this.updateUI()
+        if (stuck) this.endTurn(true)
     }
 
     updateUI() {
@@ -153,12 +186,18 @@ class Game {
         $("#turn-info").text(`It's Player ${this.playerTurn+1}'s turn`)
         const sprite = sprites[playerSprites[this.playerTurn]]
         $("#turn-info").prepend(sprite.make()).append(sprite.make())
-        if (this.playerTurn == 0) $(".action").show()
-        else $(".action").hide()
+        if (this.playerTurn == -1) $(".action").hide()
+        else {
+            $(".action").show()
 
-        if (this.rolled) $("#action-area .action").hide()
-        else $("#dice-area .action").remove()
-        if (this.markersAvailable == 3) $(".action.stop").hide()
+            if (this.rolled) {
+                $("#action-area .action").hide()
+            } else {
+                $("#dice-area .action").remove()
+                $("#action-area .action").show()
+                if (this.markersAvailable == 3) $(".action.stop").hide()
+            }
+        }
     }
 }
 
@@ -169,20 +208,20 @@ async function init() {
     sprites = await Sprites.loadAll("sprite64.png", 64, spriteNames)
 
     const map = [
-        "     7     ",
-        "    6^8    ",
-        "   5^|^9   ",
-        "  4^|||^a  ",
-        " 3^|||||^b ",
-        "2^|||||||^c",
-        "^|||||||||^",
-        "|||||||||||",
-        "v|||||||||v",
-        " v|||||||v ",
-        "  v|||||v  ",
-        "   v|||v   ",
-        "    v|v    ",
-        "ooo  v     ",
+        "     7      ",
+        "    6^8     ",
+        "   5^|^9    ",
+        "  4^|||^a   ",
+        " 3^|||||^b  ",
+        "2^|||||||^c ",
+        "^|||||||||^ ",
+        "||||||||||| ",
+        "v|||||||||v ",
+        " v|||||||v  ",
+        "  v|||||v   ",
+        "   v|||v    ",
+        "    v|v     ",
+        "ooo  v      ",
     ]
     map.forEach((row, rowNum) => {
         const r = $(`<div></div>`)
@@ -199,18 +238,7 @@ async function init() {
 
 async function main() {
     await init()
-    game = new Game()
-    game.lock(1, 5, 3)
-    game.lock(1, 12, 2)
-    game.lock(2, 5, 2)
-    game.lock(2, 7, 7)
-    game.markerProgress[7] = 3
-    game.markersOn[7] = true
-    game.markersAvailable--
-    game.markersAvailable--
-    game.markersAvailable--
-
-    game.updateUI()
+    game = new Game(2)
 }
 
 main()

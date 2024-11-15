@@ -4,39 +4,47 @@
         <script src="sprites.js"></script>
         <script src="cant-stop.js"></script>
         <link rel="stylesheet" href="cant-stop.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div id="#game">
-            <div class="turn-info">It's your turn</div>
+        <div id="game">
+            <div id="turn-info">It's your turn</div>
             <div id="map"></div>
-            <div id="dice-area">
-                <div class="dice-option">
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="action"></div>
+            <div id="dice-and-action-area">
+                <div id="dice-area">
+                    <div class="dice-option">
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div>
+                        </div>
+                    </div>
+                    <div class="dice-option">
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div>
+                        </div>
+                    </div>
+                    <div class="dice-option">
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div class="die"></div>
+                        <div>
+                        </div>
+                    </div>
                 </div>
-                <div class="dice-option">
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="action"></div>
-                </div>
-                <div class="dice-option">
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="die tile"></div>
-                    <div class="action"></div>
+                <div id="action-area">
+                    <div class="action roll">Roll</div>
+                    <div class="action stop">Stop rolling</div>
                 </div>
             </div>
-            <div id="action-area">
-                <div class="action">Roll again</div>
-                <div class="action">Stop rolling</div>
-            </div>
+            <div id="instructions">Instructions for the game go here</div>
             <div id="log"></div>
+            <div id="about"><div><b>Can't Stop</b> is a board game. <a href="https://www.eaglegames.net/Can-t-Stop-2021-p/102349.htm">Buy the original</a> at Eagle-Gryphon Games. This online version is by <a href="https://za3k.com">za3k</a>, written as part of <a href="https://za3k.com/hackaday">hack-a-day</a></div></div>
         </div>
     </body>
 </html>

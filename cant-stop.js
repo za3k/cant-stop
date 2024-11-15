@@ -1,13 +1,6 @@
 //[ ] Stretch
 //    [ ] Audio
 //        [ ] Background music
-//        [ ] Effects
-//            [ ] their turn ended
-//            [ ] its your turn
-//            [ ] Dice rolled
-//            [ ] A piece
-//            [ ] Oops! Busted
-//    [ ] Dice rolling animation
 //    [ ] You vs. AI mode
 
 function roll() { return 1 + Math.floor(Math.random()*6) }
